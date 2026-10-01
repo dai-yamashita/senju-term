@@ -200,6 +200,8 @@ cargo tauri dev
 cargo tauri build
 ```
 
+macOS ではリポジトリのルートから `./scripts/build-macos.sh` でも配布用ビルドできます。
+
 フロントエンドはバンドラ不要の静的ファイル(`ui/`)で、xterm.js は `ui/vendor/` にベンダリング済みです。npm は不要です。
 
 GitHub Actions(`.github/workflows/build.yml`)で 3 OS のビルドを自動実行します。`v*` タグを push するとドラフトリリースに各 OS のインストーラが添付されます。

@@ -18,11 +18,13 @@
 | `*.deb` | Debian / Ubuntu パッケージ |
 | `*.rpm` | Fedora / RHEL パッケージ |
 
-macOS 向けバイナリは現在準備中です。それまでは下記のソースビルドをご利用ください(Tauri 2 のクロスプラットフォーム対応により macOS でもビルドできます)。
+macOS 向けバイナリは現在準備中です。それまではリポジトリのルートで `./scripts/build-macos.sh` を実行してソースからビルドしてください。Xcode または Command Line Tools が必要です(Tauri 2 により macOS でもビルドできます)。
 
 ## ソースからビルド
 
 前提: [Rust(stable)](https://rustup.rs/) と [tauri-cli v2](https://v2.tauri.app/)(`cargo install tauri-cli --locked`)
+
+Rust ツールチェーンと tauri-cli が既に使える場合は、次のコマンドでもビルドできます。
 
 ```sh
 cd apps/desktop-app
