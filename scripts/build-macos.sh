@@ -181,22 +181,30 @@ PY
     return 1
   fi
 
+  # The last argument is the folder whose children become the DMG root.
+  # Passing the .app itself makes that root Contents/, so Finder shows a folder.
+  local stage
+  stage="$(mktemp -d)"
+  ditto "${bundle_macos}/${app_name}" "${stage}/${app_name}"
+
   echo "Creating DMG with --sandbox-safe (macOS $(macos_major_version) hdiutil -srcfolder workaround)..."
   mkdir -p "${bundle_dmg_dir}"
   rm -f "${bundle_macos}/${dmg_name}" "${bundle_dmg_dir}/${dmg_name}"
-  rm -f "${bundle_macos}"/rw.*.dmg 2>/dev/null || true
-  (
-    cd "${bundle_macos}"
-    "${script}" --sandbox-safe \
-      --volname "${product}" \
-      --icon "${app_name}" 180 170 \
-      --app-drop-link 480 170 \
-      --window-size 660 400 \
-      --hide-extension "${app_name}" \
-      --volicon "../dmg/icon.icns" \
-      "${dmg_name}" "${app_name}"
-  )
-  mv -f "${bundle_macos}/${dmg_name}" "${bundle_dmg_dir}/${dmg_name}"
+  rm -f "${bundle_macos}"/rw.*.dmg "${bundle_dmg_dir}"/rw.*.dmg 2>/dev/null || true
+  local rc=0
+  "${script}" --sandbox-safe \
+    --volname "${product}" \
+    --icon "${app_name}" 180 170 \
+    --app-drop-link 480 170 \
+    --window-size 660 400 \
+    --hide-extension "${app_name}" \
+    --volicon "${bundle_dmg_dir}/icon.icns" \
+    "${bundle_dmg_dir}/${dmg_name}" \
+    "${stage}" || rc=$?
+  /bin/rm -rf "${stage}"
+  if ((rc != 0)); then
+    return "${rc}"
+  fi
 }
 
 run_tauri_build() {
@@ -217,12 +225,15 @@ run_tauri_build() {
 
 trap remove_lock_if_owned EXIT
 acquire_build_lock
-setup_cargo
-require_xcode_tools
-ensure_tauri_cli
-
-cd "${DESKTOP_APP}"
-run_tauri_build
+if [[ "${1:-}" == "--dmg-only" ]]; then
+  bundle_dmg_sandbox_safe
+else
+  setup_cargo
+  require_xcode_tools
+  ensure_tauri_cli
+  cd "${DESKTOP_APP}"
+  run_tauri_build
+fi
 
 BUNDLE="${DESKTOP_APP}/target/release/bundle"
 APP_PATH=""
